@@ -158,6 +158,8 @@ char * convertCommand(char * command) {
     }
 }
 
+
+// insertin label name 
 char * insertLabel(char * labelname) {
 // use label name
 
@@ -165,6 +167,7 @@ char * insertLabel(char * labelname) {
     {
         if ( strcmp(labelname, labels[i].name)) {
 
+            // inserting label ref for pre lines in the file
             int lineDiff = linecount - labels[i].linenumber;
             return negateBinary(intToBin(lineDiff, 9), 9);
         }
@@ -278,6 +281,8 @@ int main() {
                 printf("%s\n", convertImmVal(token, 9));
             }
             else {
+
+                // inserting label localtion in binary
                 printf("%s\n", insertLabel(token));
             }
         }
