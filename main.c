@@ -2,7 +2,21 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-int PC = 0;
+
+
+
+struct {
+    char * name;
+    int linenumber;
+} labels[20];
+
+
+int labelcounter = 0;
+int linecount = 0;
+
+
+char * insertLabel(char * labelname);
+
 //function to convert positive int to binary (ONLY INPUT POSITIVE INT, OUTPUT POSITIVE BINARY)
 char * intToBin(int numberToConvert, int binSize){
     char binary[binSize+1];
@@ -45,6 +59,7 @@ char * negateBinary(char * binary, int binSize) {
     }
     return strdup(binary);
 }
+
 char * convertImmVal(char * command, int binSize){
     //input has # before number
     if (command[1] != '-') {// if NOT negative
@@ -133,9 +148,37 @@ char * convertCommand(char * command) {
 
         return strdup(result);
     }
-    return "The command couldn't be found";
+    else {
+        labels[labelcounter].name = command;
+        labels[labelcounter].linenumber = linecount;
+
+        labelcounter++;
+
+        return "label created \n";
+    }
 }
 
+char * insertLabel(char * labelname) {
+// use label name
+
+    for (int i = 0; i < 20; i++)
+    {
+        if ( strcmp(labelname, labels[i].name)) {
+
+            int lineDiff = linecount - labels[i].linenumber;
+            return negateBinary(intToBin(lineDiff, 9), 9);
+        }
+    }
+    
+    /*
+    if (labelObj.linenumber >= 0) {
+        return intToBin(labelObj.linenumber, 9);
+    }
+    else {
+        return negateBinary(intToBin(labelObj.linenumber * -1, 9), 9);
+    }
+    */
+}
 
 
 
@@ -154,20 +197,34 @@ int main() {
     LDR DR (3 bits) BaseR (3 bits) offset6 (6 bits)
 */
 
+/*
+    linecount to referens label
+    label list
+*/
+
     FILE * filePointer;
     int bufferLength = 60;
     char input[bufferLength];
 
-    filePointer = fopen("C:\\Users\\Jacob Berg Eriksen\\CLionProjects\\MaskinJ\\maskin.txt", "r");
+    filePointer = fopen("maskin.txt", "r");
 
     if(filePointer== NULL){
         printf("filepoint is null\n");
     }
 
-    while (fgets(input, bufferLength, filePointer)!=NULL){
-        char delim[] = " ";
+    // test values
+    labels[labelcounter].linenumber = linecount;
+    labels[labelcounter].name = "oli";
+    labelcounter++;
 
-        printf("%s", input);
+
+
+    while (fgets(input, bufferLength, filePointer)!=NULL){
+        linecount++;
+
+        char delim[] = " ";
+        
+     //   printf("%s", input);
 
         char * token = strtok(input, delim);
         // convert the command
@@ -202,14 +259,27 @@ int main() {
             printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
             token = strtok(NULL, delim);
-            printf("%s\n", convertImmVal(token, 9));
+            
+            if (token[0] == 'x') {
+                printf("%s\n", convertImmVal(token, 9));
+            }
+            else {
+                printf("%s\n", insertLabel(token));
+            }
+            
         }
         else if (strcmp(token, "LD") == 0) {
             // 1. Register
             printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
             token = strtok(NULL, delim);
-            printf("%s\n", convertImmVal(token, 9));
+
+            if (token[0] == 'x') {
+                printf("%s\n", convertImmVal(token, 9));
+            }
+            else {
+                printf("%s\n", insertLabel(token));
+            }
         }
         else if (token[0]=='B' && token[1]=='R') {
             //1. offset convert
@@ -254,10 +324,15 @@ int main() {
             length = strlen(token);
             for(int i = 0; i <length; i++){//loop through each char in word
                 charVal = token[i];
-                printf("char: %c bin: %s\n",token[i], intToBin(charVal,16));
+                printf("%s\n",intToBin(charVal,16));
+              //  printf("char: %c bin: %s\n",token[i], intToBin(charVal,16));
             }
+        }
+        else {
 
         }
     }
+
+
     return 0;
 }
