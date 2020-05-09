@@ -167,7 +167,7 @@ int main() {
     while (fgets(input, bufferLength, filePointer)!=NULL){
         char delim[] = " ";
 
-        printf("%s", input);
+        printf("%s\n", input);
 
         char * token = strtok(input, delim);
         // convert the command
@@ -181,7 +181,7 @@ int main() {
             printf("%s", convertCommand(token));
 
             // 3. SR2 register value or immediate value
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             if (token[0] == 'R') {
                 printf("%s", "000");
                 printf("%s\n", convertCommand(token));
@@ -201,19 +201,19 @@ int main() {
             //1. DR
             printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             printf("%s\n", convertImmVal(token, 9));
         }
         else if (strcmp(token, "LD") == 0) {
             // 1. Register
             printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             printf("%s\n", convertImmVal(token, 9));
         }
         else if (token[0]=='B' && token[1]=='R') {
             //1. offset convert
-            printf("%s\n", convertImmVal(strtok(NULL, delim), 9));
+            printf("%s\n", convertImmVal(strtok(NULL, "\n"), 9));
         }
         else if (strcmp(token, "LDR") == 0) {
             //1. Register
@@ -238,7 +238,7 @@ int main() {
             }
         }
         else if (strcmp(token, ".BLKW") == 0){
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             int blkwSize = 0;
             for(int i = 0; i < strlen(token); i++){
                 blkwSize += (token[i]-48) * pow(10,strlen(token)-i-1);

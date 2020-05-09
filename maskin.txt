@@ -1,2 +1,1 @@
-.ORIG x3000
-.STRINGZ "hyo smukke pige, vil du ind i mujaffas bmw?"
+.STRINGZ "Hej Ed."
