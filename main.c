@@ -157,30 +157,20 @@ char * convertCommand(char * command) {
 char * convertLabelAddress(char * labelname) {
 // use label name
 
-    for (int i = 0; i < 20; i++)
-    {
+    for (int i = 0; i < 20; i++){
         if ( strcmp(labelname, labels[i].name)) {//finding correct label
 
             // inserting label ref for pre lines in the file
             int lineDiff = (labels[i].linenumber - linecount);
 
-            if(lineDiff < 0){
+            if(lineDiff < 0){//if negative
                 return negateBinary(intToBin(-lineDiff, 9), 9);
             }
-            else{
+            else{//if positive
                 return intToBin(lineDiff,9);
             }
         }
     }
-
-    /*
-    if (labelObj.linenumber >= 0) {
-        return intToBin(labelObj.linenumber, 9);
-    }
-    else {
-        return negateBinary(intToBin(labelObj.linenumber * -1, 9), 9);
-    }
-    */
 }
 
 char * symbolTable(FILE * filePointer){
@@ -214,7 +204,7 @@ char * symbolTable(FILE * filePointer){
     FILE * symbolTable = fopen("symbolTable.txt", "w");
     for (int i = 0; i < 20; ++i) {
         if((labels[i].name != NULL)){
-            fprintf(symbolTable, "%s\t\tx%x\n",labels[i].name,labels[i].linenumber+12288);
+            fprintf(symbolTable, "%s\t\tx%x line %d \n",labels[i].name,labels[i].linenumber+12288, labels[i].linenumber);
         }
     }
 }
@@ -255,7 +245,7 @@ int main() {
     if(filePointer== NULL){
         printf("filepoint is null\n");
     }
-    linecount = 1;
+    linecount = 0;
     while (fgets(input, bufferLength, filePointer)!=NULL){
         char delim[] = " ";
         
@@ -314,7 +304,7 @@ int main() {
             }
             else {
 
-                // inserting label localtion in binary
+                // inserting offset (label pos - current pos)
                 printf("%s\n", convertLabelAddress(token));
             }
         }
