@@ -11,7 +11,7 @@ struct {
 
 
 int labelcounter = 0;
-int linecount = 0;
+int linecount = -1;
 
 
 char * convertLabelAddress(char * labelname);
@@ -148,12 +148,6 @@ char * convertCommand(char * command) {
         return strdup(result);
     }
     else {
-
-        /*labels[labelcounter].name = command;
-        labels[labelcounter].linenumber = linecount;
-
-        labelcounter++;*/
-
         return "";
     }
 }
@@ -165,13 +159,13 @@ char * convertLabelAddress(char * labelname) {
 
     for (int i = 0; i < 20; i++)
     {
-        if ( strcmp(labelname, labels[i].name)) {
+        if ( strcmp(labelname, labels[i].name)) {//finding correct label
 
             // inserting label ref for pre lines in the file
-            int lineDiff = (labels[i].linenumber - linecount) - 1;
+            int lineDiff = (labels[i].linenumber - linecount);
 
             if(lineDiff < 0){
-                return negateBinary(intToBin(lineDiff * -1, 9), 9);
+                return negateBinary(intToBin(-lineDiff, 9), 9);
             }
             else{
                 return intToBin(lineDiff,9);
@@ -195,9 +189,6 @@ char * symbolTable(FILE * filePointer){
     char input[bufferLength];
 
     while (fgets(input, bufferLength, filePointer)!=NULL){
-
-        linecount++;
-
         char * command = strtok(input, " ");
 
         if (!(strcmp(command, "ADD") == 0 ||
@@ -210,20 +201,20 @@ char * symbolTable(FILE * filePointer){
             strcmp(command, ".FILL")==0 ||
             strcmp(command, ".BLKW")==0 ||
             strcmp(command, ".STRINGZ")==0 ||
+            strcmp(command, ".END")==0 ||
             command[0] == 'R')){
-
             command[strlen(command)-1] = 0;
-
             labels[labelcounter].name = strdup(command);
             labels[labelcounter].linenumber = linecount--;
-
             labelcounter++;
         }
+        linecount++;
     }
 
+    FILE * symbolTable = fopen("symbolTable.txt", "w");
     for (int i = 0; i < 20; ++i) {
         if((labels[i].name != NULL)){
-            printf("%s\t\tx%x\n",labels[i].name,labels[i].linenumber+12288);
+            fprintf(symbolTable, "%s\t\tx%x\n",labels[i].name,labels[i].linenumber+12288);
         }
     }
 }
@@ -252,27 +243,23 @@ int main() {
     int bufferLength = 60;
     char input[bufferLength];
 
-    filePointer = fopen("C:\\Users\\Bruger\\Desktop\\Maskin Projekt2 rigitg\\MaskinJ\\maskin.txt", "r");
+    filePointer = fopen("maskin.txt", "r");
 
     if(filePointer== NULL){
         printf("filepoint is null\n");
     }
-
-    // test values
-    //labels[labelcounter].linenumber = linecount;
-    //labels[labelcounter].name = "oli";
-    labelcounter++;
-
     symbolTable(filePointer);
 
+    filePointer = fopen("maskin.txt", "r");
 
-
+    if(filePointer== NULL){
+        printf("filepoint is null\n");
+    }
+    linecount = 1;
     while (fgets(input, bufferLength, filePointer)!=NULL){
-        linecount++;
-
         char delim[] = " ";
         
-        printf("%s", input);
+        //printf("%s", input);
 
         char * token = strtok(input, delim);
         // convert the command
@@ -379,8 +366,10 @@ int main() {
             }
         }
         else {
-
+            // if read line is label
+            linecount--;
         }
+        linecount++;
     }
     return 0;
 }

@@ -1,5 +1,0 @@
-banan
-ADD R1, R2, #-1
-hej
-ADD R1, R2 #10
-ole
