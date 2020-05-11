@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 
-
 struct {
     char * name;
     int linenumber;
@@ -15,7 +14,7 @@ int labelcounter = 0;
 int linecount = 0;
 
 
-char * insertLabel(char * labelname);
+char * convertLabelAddress(char * labelname);
 
 //function to convert positive int to binary (ONLY INPUT POSITIVE INT, OUTPUT POSITIVE BINARY)
 char * intToBin(int numberToConvert, int binSize){
@@ -160,7 +159,7 @@ char * convertCommand(char * command) {
 
 
 // insertin label name 
-char * insertLabel(char * labelname) {
+char * convertLabelAddress(char * labelname) {
 // use label name
 
     for (int i = 0; i < 20; i++)
@@ -168,8 +167,14 @@ char * insertLabel(char * labelname) {
         if ( strcmp(labelname, labels[i].name)) {
 
             // inserting label ref for pre lines in the file
-            int lineDiff = linecount - labels[i].linenumber;
-            return negateBinary(intToBin(lineDiff, 9), 9);
+            int lineDiff = (labels[i].linenumber - linecount) - 1;
+
+            if(lineDiff < 0){
+                return negateBinary(intToBin(lineDiff * -1, 9), 9);
+            }
+            else{
+                return intToBin(lineDiff,9);
+            }
         }
     }
     
@@ -209,7 +214,7 @@ int main() {
     int bufferLength = 60;
     char input[bufferLength];
 
-    filePointer = fopen("maskin.txt", "r");
+    filePointer = fopen("C:\\Users\\Bruger\\Desktop\\Maskin Projekt2 rigitg\\MaskinJ\\maskin.txt", "r");
 
     if(filePointer== NULL){
         printf("filepoint is null\n");
@@ -227,7 +232,7 @@ int main() {
 
         char delim[] = " ";
         
-     //   printf("%s", input);
+        printf("%s", input);
 
         char * token = strtok(input, delim);
         // convert the command
@@ -235,7 +240,7 @@ int main() {
 
         if (strcmp(token, "ADD") == 0) {
             // 1. DR
-            printf("%s",convertCommand(strtok(NULL, delim)));
+            printf("%s",convertCommand(strtok(NULL, "\n")));
             // 2. SR1
             token = strtok(NULL, delim);
             printf("%s", convertCommand(token));
@@ -267,7 +272,7 @@ int main() {
                 printf("%s\n", convertImmVal(token, 9));
             }
             else {
-                printf("%s\n", insertLabel(token));
+                printf("%s\n", convertLabelAddress(token));
             }
             
         }
@@ -283,12 +288,12 @@ int main() {
             else {
 
                 // inserting label localtion in binary
-                printf("%s\n", insertLabel(token));
+                printf("%s\n", convertLabelAddress(token));
             }
         }
         else if (token[0]=='B' && token[1]=='R') {
             //1. offset convert
-            printf("%s\n", convertImmVal(strtok(NULL, delim), 9));
+            printf("%s\n", convertLabelAddress(strtok(NULL, "\n")));
         }
         else if (strcmp(token, "LDR") == 0) {
             //1. Register
