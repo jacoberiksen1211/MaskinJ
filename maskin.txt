@@ -1,4 +1,5 @@
 banan
 ADD R1, R2, #-1
-ST R1, banan
-
+hej
+ADD R1, R2 #10
+ole

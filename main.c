@@ -148,12 +148,13 @@ char * convertCommand(char * command) {
         return strdup(result);
     }
     else {
-        labels[labelcounter].name = command;
+
+        /*labels[labelcounter].name = command;
         labels[labelcounter].linenumber = linecount;
 
-        labelcounter++;
+        labelcounter++;*/
 
-        return "label created \n";
+        return "";
     }
 }
 
@@ -188,7 +189,42 @@ char * convertLabelAddress(char * labelname) {
     */
 }
 
+char * symbolTable(FILE * filePointer){
 
+    int bufferLength = 60;
+    char input[bufferLength];
+
+    while (fgets(input, bufferLength, filePointer)!=NULL){
+
+        linecount++;
+
+        char * command = strtok(input, " ");
+
+        if (!(strcmp(command, "ADD") == 0 ||
+            command[0] == 'B' && command[1]=='R'||
+            strcmp(command, "ST") == 0 ||
+            strcmp(command, "LD") == 0 ||
+            strcmp(command, "LDR") == 0 ||
+            strcmp(command, "NOT") == 0 ||
+            strcmp(command, ".ORIG")==0 ||
+            strcmp(command, ".FILL")==0 ||
+            strcmp(command, ".BLKW")==0 ||
+            strcmp(command, ".STRINGZ")==0 ||
+            command[0] == 'R')){
+
+            labels[labelcounter].name = strdup(command);
+            labels[labelcounter].linenumber = linecount--;
+
+            labelcounter++;
+        }
+    }
+
+    for (int i = 0; i < 20; ++i) {
+        if((labels[i].name != NULL)){
+            printf("%s\t\tx%x\n",labels[i].name,labels[i].linenumber+12288);
+        }
+    }
+}
 
 // test function
 
@@ -221,9 +257,11 @@ int main() {
     }
 
     // test values
-    labels[labelcounter].linenumber = linecount;
-    labels[labelcounter].name = "oli";
+    //labels[labelcounter].linenumber = linecount;
+    //labels[labelcounter].name = "oli";
     labelcounter++;
+
+    symbolTable(filePointer);
 
 
 
