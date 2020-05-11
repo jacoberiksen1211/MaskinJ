@@ -1,8 +1,1 @@
-.ORIG x3000
-Label
-asdf
-ST R1 Label
-ST R1 asdf
-ST R1 Label
-ST R1 asdf
-ST R1 oli
+ADD R1 R2 #-1
