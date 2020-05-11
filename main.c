@@ -177,7 +177,7 @@ char * convertLabelAddress(char * labelname) {
             }
         }
     }
-    
+
     /*
     if (labelObj.linenumber >= 0) {
         return intToBin(labelObj.linenumber, 9);
@@ -240,13 +240,13 @@ int main() {
 
         if (strcmp(token, "ADD") == 0) {
             // 1. DR
-            printf("%s",convertCommand(strtok(NULL, "\n")));
+            printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. SR1
             token = strtok(NULL, delim);
             printf("%s", convertCommand(token));
 
             // 3. SR2 register value or immediate value
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             if (token[0] == 'R') {
                 printf("%s", "000");
                 printf("%s\n", convertCommand(token));
@@ -266,21 +266,21 @@ int main() {
             //1. DR
             printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
-            token = strtok(NULL, delim);
-            
+            token = strtok(NULL, "\n");
+
             if (token[0] == 'x') {
                 printf("%s\n", convertImmVal(token, 9));
             }
             else {
                 printf("%s\n", convertLabelAddress(token));
             }
-            
+
         }
         else if (strcmp(token, "LD") == 0) {
             // 1. Register
             printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
 
             if (token[0] == 'x') {
                 printf("%s\n", convertImmVal(token, 9));
@@ -318,7 +318,7 @@ int main() {
             }
         }
         else if (strcmp(token, ".BLKW") == 0){
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             int blkwSize = 0;
             for(int i = 0; i < strlen(token); i++){
                 blkwSize += (token[i]-48) * pow(10,strlen(token)-i-1);
@@ -342,7 +342,5 @@ int main() {
 
         }
     }
-
-
     return 0;
 }
