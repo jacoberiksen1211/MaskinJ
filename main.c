@@ -212,6 +212,8 @@ char * symbolTable(FILE * filePointer){
             strcmp(command, ".STRINGZ")==0 ||
             command[0] == 'R')){
 
+            command[strlen(command)-1] = 0;
+
             labels[labelcounter].name = strdup(command);
             labels[labelcounter].linenumber = linecount--;
 
