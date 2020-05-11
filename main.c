@@ -140,6 +140,9 @@ char * convertCommand(char * command) {
     else if ( strcmp(command, ".STRINGZ")==0){
         return "";//output nothing this time around - print 16 zeroes, param times
     }
+    else if ( strcmp(command, "HALT\n")==0){
+        return "1111000000100101\n";//calling TRAP x25   (25 is 8bit hexi)
+    }
     // registers
     else if (command[0] == 'R') {
         int numberToConvert = command[1] - 48;
@@ -158,11 +161,11 @@ char * convertLabelAddress(char * labelname) {
 // use label name
 
     for (int i = 0; i < 20; i++){
-        if ( strcmp(labelname, labels[i].name)) {//finding correct label
+        if ( strcmp(labelname, labels[i].name)==0) {//finding correct label
 
-            // inserting label ref for pre lines in the file
+            // diff between label adress and pc
             int lineDiff = (labels[i].linenumber - linecount);
-
+            //printf(" %d %d %d ", linecount, labels[i].linenumber, lineDiff);
             if(lineDiff < 0){//if negative
                 return negateBinary(intToBin(-lineDiff, 9), 9);
             }
@@ -182,7 +185,7 @@ char * symbolTable(FILE * filePointer){
         char * command = strtok(input, " ");
 
         if (!(strcmp(command, "ADD") == 0 ||
-            command[0] == 'B' && command[1]=='R'||
+                (command[0] == 'B' && command[1]=='R')||
             strcmp(command, "ST") == 0 ||
             strcmp(command, "LD") == 0 ||
             strcmp(command, "LDR") == 0 ||
@@ -192,10 +195,12 @@ char * symbolTable(FILE * filePointer){
             strcmp(command, ".BLKW")==0 ||
             strcmp(command, ".STRINGZ")==0 ||
             strcmp(command, ".END")==0 ||
+            strcmp(command, "HALT\n")==0 || //newline cuz this input has no parameters just like the
             command[0] == 'R')){
             command[strlen(command)-1] = 0;
             labels[labelcounter].name = strdup(command);
-            labels[labelcounter].linenumber = linecount--;
+            labels[labelcounter].linenumber = linecount;
+            linecount--;
             labelcounter++;
         }
         linecount++;
@@ -276,7 +281,7 @@ int main() {
             //1. register
             printf("%s",convertCommand(strtok(NULL, delim)));
             // 2. register value
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             printf("%s%s\n", convertCommand(token), "111111");
         }
         else if (strcmp(token, "ST") == 0) {
@@ -317,7 +322,7 @@ int main() {
             printf("%s",convertCommand(strtok(NULL, delim)));
             // baseR set.
             token = strtok(NULL, delim);
-            printf("%s%s\n", convertCommand(token), convertImmVal(strtok(NULL, delim), 6));
+            printf("%s%s\n", convertCommand(token), convertImmVal(strtok(NULL, "\n"), 6));
         }
         else if (strcmp(token, ".ORIG") == 0){
             //convert hexi to 16 bit binary
@@ -326,7 +331,7 @@ int main() {
         }
         else if (strcmp(token, ".FILL") == 0){
             //convert hexi to 16 bit binary
-            token = strtok(NULL, delim);
+            token = strtok(NULL, "\n");
             if(token[0]=='x') {
                 printf("%s\n", hexiToBinary(token));
             }
@@ -354,6 +359,9 @@ int main() {
                 printf("%s\n",intToBin(charVal,16));
               //  printf("char: %c bin: %s\n",token[i], intToBin(charVal,16));
             }
+        }
+        else if ( strcmp(token, "HALT\n")==0){
+            //print is made in convertCommand 1st call
         }
         else {
             // if read line is label
