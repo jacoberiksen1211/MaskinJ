@@ -12,7 +12,7 @@ struct {
 
 int labelcounter = 0;
 int linecount = -1;
-
+int startCount = -1;
 
 char * convertLabelAddress(char * labelname);
 
@@ -20,7 +20,6 @@ char * convertLabelAddress(char * labelname);
 char * intToBin(int numberToConvert, int binSize){
     char binary[binSize+1];
     binary[binSize]=0;
-    binary[0] = '0';
     //for loops set char [1-4]
     for (int i = binSize; i > 0; i--){
         int testval = (int)pow(2, i-1);
@@ -129,16 +128,16 @@ char * convertCommand(char * command) {
         return "1001";
     }
     else if ( strcmp(command, ".ORIG")==0){
-        return "";//output nothing this time around - just need convert hexi to bit
+        return "";//output nothing this time around - just need convert input hexi to bin
     }
     else if ( strcmp(command, ".FILL")==0){
-        return "";//output nothing this time around - just need convert hexi to bit
+        return "";//output nothing this time around - just need convert input hex or int to bin
     }
     else if ( strcmp(command, ".BLKW")==0){
         return "";//output nothing this time around - print 16 zeroes, param times
     }
     else if ( strcmp(command, ".STRINGZ")==0){
-        return "";//output nothing this time around - print 16 zeroes, param times
+        return "";//output nothing this time around - print each letter's ascii val as 16 bit bin
     }
     else if ( strcmp(command, "HALT\n")==0){
         return "1111000000100101\n";//calling TRAP x25   (25 is 8bit hexi)
@@ -174,6 +173,15 @@ char * convertLabelAddress(char * labelname) {
     }
 }
 
+int binToDeci(char * binary){
+    int result=0;
+    for(int i = 0; i<strlen(binary); i++){
+        if(binary[i]=='1'){
+            result += (int) pow(2, (double)strlen(binary)-1-i);
+        }
+    }
+    return result;
+}
 char * symbolTable(FILE * filePointer){
 
     int bufferLength = 60;
@@ -182,8 +190,14 @@ char * symbolTable(FILE * filePointer){
     while (fgets(input, bufferLength, filePointer)!=NULL){
         char * command = strtok(input, " ");
 
-        if (!(strcmp(command, "ADD") == 0 ||
-                (command[0] == 'B' && command[1]=='R')||
+        if(strcmp(command,".ORIG")==0){
+            command = strtok(NULL, "\n");
+            command = hexiToBinary(command);
+            startCount = binToDeci(command);
+            linecount = startCount-1;
+        }
+        else if (!(strcmp(command, "ADD") == 0 ||
+            (command[0] == 'B' && command[1]=='R')||
             strcmp(command, "ST") == 0 ||
             strcmp(command, "LD") == 0 ||
             strcmp(command, "LDR") == 0 ||
@@ -207,30 +221,13 @@ char * symbolTable(FILE * filePointer){
     FILE * symbolTable = fopen("symbolTable.txt", "w");
     for (int i = 0; i < 20; ++i) {
         if((labels[i].name != NULL)){
-            fprintf(symbolTable, "%s\t\tx%x\n",labels[i].name,labels[i].linenumber+12288);
+            fprintf(symbolTable, "%s\t\tx%x\n",labels[i].name,labels[i].linenumber);
         }
     }
 }
 
-// test function
-
 int main() {
 
-/*
-    ADD R1, R1, #3 (1 bits for finding register) (5 bits)
-    NOT R1, R2
-
-    ST  SR(3 bits) PCoffset9 (9 bits)
-    LD R1, #-3 (PCOffset) (9 bits)
-    BR  |n|z|p|(3 bits) PCoffset9 (9 bits) husk at tage til eftertanke
-
-    LDR DR (3 bits) BaseR (3 bits) offset6 (6 bits)
-*/
-
-/*
-    linecount to referens label
-    label list
-*/
     //open input file and run through code to set labels:
     FILE * filePointer;
     int bufferLength = 60;
@@ -250,7 +247,7 @@ int main() {
     //set outputfile:
     FILE * BinaryCode = fopen("BinaryCode.txt", "w");
 
-    linecount = 0;
+    linecount = startCount-1;
     while (fgets(input, bufferLength, filePointer)!=NULL){
         char delim[] = " ";
 
