@@ -156,10 +156,8 @@ char * convertCommand(char * command) {
 }
 
 
-// insertin label name 
+// converts label name to proper 9 bit offset
 char * convertLabelAddress(char * labelname) {
-// use label name
-
     for (int i = 0; i < 20; i++){
         if ( strcmp(labelname, labels[i].name)==0) {//finding correct label
 
@@ -185,7 +183,7 @@ char * symbolTable(FILE * filePointer){
         char * command = strtok(input, " ");
 
         if (!(strcmp(command, "ADD") == 0 ||
-        (command[0] == 'B' && command[1]=='R')||
+                (command[0] == 'B' && command[1]=='R')||
             strcmp(command, "ST") == 0 ||
             strcmp(command, "LD") == 0 ||
             strcmp(command, "LDR") == 0 ||
@@ -255,7 +253,7 @@ int main() {
     linecount = 0;
     while (fgets(input, bufferLength, filePointer)!=NULL){
         char delim[] = " ";
-        
+
         //printf("%s", input);
 
         char * token = strtok(input, delim);
@@ -271,11 +269,11 @@ int main() {
 
             // 3. SR2 register value or immediate value
             token = strtok(NULL, "\n");
-            if (token[0] == 'R') {
+            if (token[0] == 'R') {//if register
                 fprintf(BinaryCode,"%s", "000");
                 fprintf(BinaryCode,"%s\n", convertCommand(token));
             }
-            else if(token[0] == '#'){
+            else if(token[0] == '#'){//if immediate val in format: #number
                 fprintf(BinaryCode,"%s%s\n", "1", convertImmVal(token, 5));
             }
         }
@@ -292,10 +290,10 @@ int main() {
             // 2. offset convert
             token = strtok(NULL, "\n");
 
-            if (token[0] == 'x') {
+            if (token[0] == '#') {//if immediate val in format: #number
                 fprintf(BinaryCode,"%s\n", convertImmVal(token, 9));
             }
-            else {
+            else {//if label
                 fprintf(BinaryCode,"%s\n", convertLabelAddress(token));
             }
 
@@ -306,18 +304,23 @@ int main() {
             // 2. offset convert
             token = strtok(NULL, "\n");
 
-            if (token[0] == 'x') {
+            if (token[0] == '#') { //if immediate val in format: #number
                 fprintf(BinaryCode,"%s\n", convertImmVal(token, 9));
             }
-            else {
-
+            else {//if label
                 // inserting offset (label pos - current pos)
                 fprintf(BinaryCode,"%s\n", convertLabelAddress(token));
             }
         }
         else if (token[0]=='B' && token[1]=='R') {
             //1. offset convert
-            fprintf(BinaryCode,"%s\n", convertLabelAddress(strtok(NULL, "\n")));
+            token = strtok(NULL, "\n");
+            if(token[0]=='#'){//if immediate val in format: #number
+                fprintf(BinaryCode,"%s\n",convertImmVal(token,9));
+            }
+            else{//if label
+                fprintf(BinaryCode,"%s\n", convertLabelAddress(token));
+            }
         }
         else if (strcmp(token, "LDR") == 0) {
             //1. Register
@@ -363,6 +366,9 @@ int main() {
             }
         }
         else if ( strcmp(token, "HALT\n")==0){
+            //print is made in convertCommand 1st call
+        }
+        else if ( strcmp(token, ".END\n")==0){
             //print is made in convertCommand 1st call
         }
         else {
