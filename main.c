@@ -185,7 +185,7 @@ char * symbolTable(FILE * filePointer){
         char * command = strtok(input, " ");
 
         if (!(strcmp(command, "ADD") == 0 ||
-                (command[0] == 'B' && command[1]=='R')||
+        (command[0] == 'B' && command[1]=='R')||
             strcmp(command, "ST") == 0 ||
             strcmp(command, "LD") == 0 ||
             strcmp(command, "LDR") == 0 ||
@@ -194,7 +194,7 @@ char * symbolTable(FILE * filePointer){
             strcmp(command, ".FILL")==0 ||
             strcmp(command, ".BLKW")==0 ||
             strcmp(command, ".STRINGZ")==0 ||
-            strcmp(command, ".END")==0 ||
+            strcmp(command, ".END\n")==0 ||
             strcmp(command, "HALT\n")==0 || //newline cuz this input has no parameters just like the
             command[0] == 'R')){
             command[strlen(command)-1] = 0;
@@ -209,7 +209,7 @@ char * symbolTable(FILE * filePointer){
     FILE * symbolTable = fopen("symbolTable.txt", "w");
     for (int i = 0; i < 20; ++i) {
         if((labels[i].name != NULL)){
-            fprintf(symbolTable, "%s\t\tx%x line %d \n",labels[i].name,labels[i].linenumber+12288, labels[i].linenumber);
+            fprintf(symbolTable, "%s\t\tx%x\n",labels[i].name,labels[i].linenumber+12288);
         }
     }
 }
@@ -233,23 +233,25 @@ int main() {
     linecount to referens label
     label list
 */
-
+    //open input file and run through code to set labels:
     FILE * filePointer;
     int bufferLength = 60;
     char input[bufferLength];
-
     filePointer = fopen("maskin.txt", "r");
-
     if(filePointer== NULL){
         printf("filepoint is null\n");
     }
     symbolTable(filePointer);
 
+    //reset filepointer to run rest of program
     filePointer = fopen("maskin.txt", "r");
-
     if(filePointer== NULL){
         printf("filepoint is null\n");
     }
+
+    //set outputfile:
+    FILE * BinaryCode = fopen("BinaryCode.txt", "w");
+
     linecount = 0;
     while (fgets(input, bufferLength, filePointer)!=NULL){
         char delim[] = " ";
@@ -258,85 +260,85 @@ int main() {
 
         char * token = strtok(input, delim);
         // convert the command
-        printf("%s", convertCommand(token));
+        fprintf(BinaryCode,"%s", convertCommand(token));
 
         if (strcmp(token, "ADD") == 0) {
             // 1. DR
-            printf("%s",convertCommand(strtok(NULL, delim)));
+            fprintf(BinaryCode,"%s",convertCommand(strtok(NULL, delim)));
             // 2. SR1
             token = strtok(NULL, delim);
-            printf("%s", convertCommand(token));
+            fprintf(BinaryCode,"%s", convertCommand(token));
 
             // 3. SR2 register value or immediate value
             token = strtok(NULL, "\n");
             if (token[0] == 'R') {
-                printf("%s", "000");
-                printf("%s\n", convertCommand(token));
+                fprintf(BinaryCode,"%s", "000");
+                fprintf(BinaryCode,"%s\n", convertCommand(token));
             }
             else if(token[0] == '#'){
-                printf("%s%s\n", "1", convertImmVal(token, 5));
+                fprintf(BinaryCode,"%s%s\n", "1", convertImmVal(token, 5));
             }
         }
         else if (strcmp(token, "NOT") == 0) {
             //1. register
-            printf("%s",convertCommand(strtok(NULL, delim)));
+            fprintf(BinaryCode,"%s",convertCommand(strtok(NULL, delim)));
             // 2. register value
             token = strtok(NULL, "\n");
-            printf("%s%s\n", convertCommand(token), "111111");
+            fprintf(BinaryCode,"%s%s\n", convertCommand(token), "111111");
         }
         else if (strcmp(token, "ST") == 0) {
             //1. DR
-            printf("%s",convertCommand(strtok(NULL, delim)));
+            fprintf(BinaryCode,"%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
             token = strtok(NULL, "\n");
 
             if (token[0] == 'x') {
-                printf("%s\n", convertImmVal(token, 9));
+                fprintf(BinaryCode,"%s\n", convertImmVal(token, 9));
             }
             else {
-                printf("%s\n", convertLabelAddress(token));
+                fprintf(BinaryCode,"%s\n", convertLabelAddress(token));
             }
 
         }
         else if (strcmp(token, "LD") == 0) {
             // 1. Register
-            printf("%s",convertCommand(strtok(NULL, delim)));
+            fprintf(BinaryCode,"%s",convertCommand(strtok(NULL, delim)));
             // 2. offset convert
             token = strtok(NULL, "\n");
 
             if (token[0] == 'x') {
-                printf("%s\n", convertImmVal(token, 9));
+                fprintf(BinaryCode,"%s\n", convertImmVal(token, 9));
             }
             else {
 
                 // inserting offset (label pos - current pos)
-                printf("%s\n", convertLabelAddress(token));
+                fprintf(BinaryCode,"%s\n", convertLabelAddress(token));
             }
         }
         else if (token[0]=='B' && token[1]=='R') {
             //1. offset convert
-            printf("%s\n", convertLabelAddress(strtok(NULL, "\n")));
+            fprintf(BinaryCode,"%s\n", convertLabelAddress(strtok(NULL, "\n")));
         }
         else if (strcmp(token, "LDR") == 0) {
             //1. Register
-            printf("%s",convertCommand(strtok(NULL, delim)));
+            fprintf(BinaryCode,"%s",convertCommand(strtok(NULL, delim)));
             // baseR set.
             token = strtok(NULL, delim);
-            printf("%s%s\n", convertCommand(token), convertImmVal(strtok(NULL, "\n"), 6));
+            fprintf(BinaryCode,"%s%s\n", convertCommand(token), convertImmVal(strtok(NULL, "\n"), 6));
         }
         else if (strcmp(token, ".ORIG") == 0){
             //convert hexi to 16 bit binary
             token = strtok(NULL, delim);
-            printf("%s\n", hexiToBinary(token));
+            fprintf(BinaryCode,"%s\n", hexiToBinary(token));
         }
         else if (strcmp(token, ".FILL") == 0){
             //convert hexi to 16 bit binary
             token = strtok(NULL, "\n");
             if(token[0]=='x') {
-                printf("%s\n", hexiToBinary(token));
+                fprintf(BinaryCode,"%s\n", hexiToBinary(token));
             }
             else if(token[0]=='#'){
-                printf("%s\n", convertImmVal(token, 16));
+                fprintf(BinaryCode,"%s\n", convertImmVal(token, 16));
             }
         }
         else if (strcmp(token, ".BLKW") == 0){
@@ -346,7 +348,7 @@ int main() {
                 blkwSize += (token[i]-48) * pow(10,strlen(token)-i-1);
             }
             for(int i = 0; i < blkwSize; i++){
-                printf("0000000000000000\n");
+                fprintf(BinaryCode,"0000000000000000\n");
             }
         }
         else if (strcmp(token, ".STRINGZ") == 0){
@@ -356,7 +358,7 @@ int main() {
             length = strlen(token);
             for(int i = 0; i <length; i++){//loop through each char in word
                 charVal = token[i];
-                printf("%s\n",intToBin(charVal,16));
+                fprintf(BinaryCode,"%s\n",intToBin(charVal,16));
               //  printf("char: %c bin: %s\n",token[i], intToBin(charVal,16));
             }
         }
@@ -364,9 +366,10 @@ int main() {
             //print is made in convertCommand 1st call
         }
         else {
-            // if read line is label
+            // if read line is label print nothing and dont count the line (no output instruction)
             linecount--;
         }
+        //count every line
         linecount++;
     }
     return 0;
